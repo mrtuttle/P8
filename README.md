@@ -1,59 +1,80 @@
-# P-8 · Simulatore percussivo semi-modulare
+# P-8 · Semi-modular percussion synthesizer simulator
 
-Simulatore da browser di un sintetizzatore percussivo semi-modulare con schema ispirato al Behringer Edge: due oscillatori, filtro ladder, tre inviluppi di decay, sequencer a 8 passi e patch bay. Funziona su computer, tablet e telefono, anche **offline** come app installata.
+*English · [Italiano](README.it.md)*
 
-> Progetto non ufficiale e senza alcun legame con Behringer / Music Tribe. "Behringer" ed "Edge" sono marchi dei rispettivi proprietari e sono citati solo per descrivere lo strumento a cui si ispira il layout. Grafica, codice e suoni sono originali.
+A browser simulator of a semi-modular percussion synthesizer laid out like the Behringer Edge: two oscillators, ladder filter, three decay envelopes, 8-step sequencer and patch bay. It runs on computers, tablets and phones, and also **offline** as an installed app.
 
-## Cosa contiene
+> Unofficial project, not affiliated with Behringer / Music Tribe. "Behringer" and "Edge" are trademarks of their respective owners and are mentioned only to describe the instrument the layout is based on. Graphics, code and sounds are original.
 
-- **Due oscillatori** (impulso / triangolo) con FM da OSC 1 a OSC 2 e **hard sync**.
-- **Rumore** bianco o rosa, con ingresso audio esterno.
-- **Filtro ladder 4 poli**: passa-basso e passa-alto, risonanza fino all'auto-oscillazione (casse in stile 808).
-- **Tre inviluppi di decay** (pitch, filtro, VCA) con quantità bipolari.
-- **Sequencer a 8 passi** con righe PITCH e VELOCITY, tempo da 10 a 10.000 BPM: sopra circa 2.000 BPM diventa un oscillatore udibile.
-- **SEQ PITCH MOD** su OSC 1 e 2, nessuno, o solo OSC 2.
-- **Clock** interno, esterno (ADV/CLOCK) o MIDI con divisioni da 1/4 a 1/32T (SCALE).
-- **Patch bay** completa con collegamenti interni: un cavo nel jack di ingresso sostituisce o si somma al segnale interno, come indicato nella guida.
-- **MIDI** in/out tramite Web MIDI (canale, THRU, note; riceve e invia il clock MIDI con start/stop).
-- **Tastiera a schermo** e tastiera del computer (A W S E D F …, Z/X per l'ottava, spazio = PLAY).
-- **16 preset** di fabbrica (cassa, rullante, hi-hat, tom, cowbell FM, basso acid, drone e patch d'esempio) e **preset personali**, con esportazione e importazione della **sessione completa**.
+> The interface is in English, with an **IT** button in the header to switch to Italian (the choice is remembered). Panel labels use the same names as the hardware.
 
-## Avvio rapido
+## Features
 
-1. Apri la pagina e tocca **▶ Accendi** (i browser attivano l'audio solo dopo un tocco).
-2. Dal menu **PRESET** scegli un suono e premi **PLAY/STOP**.
-3. **TRIGGER** suona lo step corrente senza avanzare; **ADVANCE** passa allo step successivo senza suonare.
-4. Per collegare un cavo tocca un'**uscita** e poi un **ingresso**. Toccando un ingresso già collegato il cavo si stacca.
-5. Il pulsante **?** apre la guida completa.
+- **Two oscillators** (pulse / triangle), ±5 octaves each, with FM from OSC 1 to OSC 2 and **hard sync**.
+- **Noise** white or pink, with external audio input.
+- **4-pole ladder filter**: low-pass and high-pass, 20 Hz – 20 kHz, resonance up to self-oscillation (808-style kicks).
+- **Three decay envelopes** (pitch, filter, VCA) with bipolar amounts; VCA attack FAST about 1 ms, SLOW 100 ms.
+- **8-step sequencer** with PITCH and VELOCITY rows (0–5 V), tempo from 10 to 10,000 BPM: above roughly 2,000 BPM it becomes an audible oscillator.
+- **SEQ PITCH MOD** to OSC 1 & 2, off, or OSC 2 only.
+- **Clock** internal, external (ADV/CLOCK) or MIDI, with divisions from 1/4 to 1/32T (SCALE).
+- **Full patch bay** with internal connections: a cable in an input jack replaces or adds to the internal signal, as described in the in-app guide.
+- **MIDI** in/out via Web MIDI (channel, THRU, notes; receives and sends MIDI clock with start/stop).
+- **On-screen keyboard** and computer keyboard (A W S E D F …, Z/X for octave, space = PLAY).
+- **16 factory presets** (kick, snare, hi-hats, toms, FM cowbell, acid bass, drone and example patches) and **user presets**, with export and import of the **whole session**.
 
-## Preset e sessioni
+## Quick start
 
-Dal menu **PRESET**:
+1. Open the page and tap **▶ Switch on** (browsers only enable audio after a tap).
+2. Pick a sound from the **PRESET** menu and press **PLAY/STOP**.
+3. **TRIGGER** plays the current step without advancing; **ADVANCE** moves to the next step without playing.
+4. To patch a cable, tap an **output** and then an **input**. Tapping an input that is already patched removes the cable.
+5. The **?** button opens the full guide.
 
-| Voce | Cosa fa |
+## Presets and sessions
+
+From the **PRESET** menu:
+
+| Menu item | What it does |
 |---|---|
-| ＋ Salva il suono attuale… | Salva manopole, levette, cavi e la sequenza degli 8 passi con un nome (anche col pulsante SALVA) |
-| ★ nome | Richiama un tuo preset |
-| ✕ Elimina «nome» | Elimina il preset caricato |
-| ⇩ Esporta sessione | Crea `P8-sessione.json` con i tuoi preset e il suono attuale, compresi sequenza, tempo e scala |
-| ⇧ Importa sessione o preset | Aggiunge i preset del file e, se confermi, ripristina la sessione |
+| ＋ Save current sound… | Saves knobs, switches, cables and the 8-step sequence under a name (also with the SAVE button) |
+| ★ name | Recalls one of your presets |
+| ✕ Delete «name» | Deletes the loaded preset |
+| ⇩ Export session | Creates `P8-sessione.json` with your presets and the current sound, including sequence, tempo and scale |
+| ⇧ Import session or presets | Adds the presets in the file and, if you confirm, restores the session |
 
-Tutto viene salvato nel browser. La versione online e quella installata offline hanno memorie separate: per passare da una all'altra usa Esporta e Importa.
+Everything is stored in the browser. The online version and the installed offline version have separate memories: use Export and Import to move between them.
 
-## Usarlo offline (iPhone, iPad, Android)
+## Offline use (iPhone, iPad, Android)
 
-Il simulatore è una PWA: dopo la prima apertura funziona anche senza connessione.
+The simulator is a PWA: after the first visit it also works without a connection.
 
-- **iPhone / iPad (Safari)**: apri la pagina, tocca Condividi → **Aggiungi alla schermata Home**.
-- **Android (Chrome)**: menu ⋮ → **Installa app**.
+- **iPhone / iPad (Safari)**: open the page, tap Share → **Add to Home Screen**.
+- **Android (Chrome)**: menu ⋮ → **Install app**.
 
-Dopo un aggiornamento dei file su GitHub, apri l'app una volta con la connessione attiva per scaricare la nuova versione.
+After updating the files on GitHub, open the app once while online to download the new version.
 
-## Compatibilità
+## Publishing on GitHub Pages
 
-- Audio: Chrome, Edge, Firefox, Safari recenti (AudioWorklet, con ripiego automatico se non disponibile).
-- MIDI: Chrome ed Edge su computer e Android. Safari e i browser su iPhone/iPad non supportano Web MIDI.
+1. Upload the contents of this folder to the repository (it must be **public**, unless your plan allows Pages on private repositories).
+2. Settings → **Pages** → Source: *Deploy from a branch*, branch `main`, folder `/ (root)`.
+3. After a couple of minutes the page is available at the address shown by GitHub.
 
-## Note tecniche
+## Files
 
-Il motore audio gira in un AudioWorklet a frequenza di campionamento piena: oscillatori con anti-aliasing polyBLEP, filtro ladder a ritardo zero (ZDF) con saturazione, inviluppi esponenziali, patch bay elaborata campione per campione.
+| File | Contents |
+|---|---|
+| `index.html` | The complete simulator (interface, audio engine, embedded fonts) |
+| `sw.js` | Service worker for offline use |
+| `manifest.webmanifest` | Installable app data |
+| `icon-*.png` | App icons |
+| `OFL-*.txt` | Licenses of the Barlow and JetBrains Mono fonts (SIL Open Font License) |
+| `README.md`, `README.it.md` | This guide in English and Italian |
+
+## Compatibility
+
+- Audio: recent Chrome, Edge, Firefox and Safari (AudioWorklet, with an automatic fallback when unavailable).
+- MIDI: Chrome and Edge on computers and Android. Safari and every browser on iPhone/iPad do not support Web MIDI.
+
+## Technical notes
+
+The audio engine runs in an AudioWorklet at the full sample rate: polyBLEP anti-aliased oscillators, zero-delay-feedback (ZDF) ladder filter with saturation, exponential decay envelopes, patch bay processed sample by sample.

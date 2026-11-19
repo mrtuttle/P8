@@ -14,7 +14,7 @@ Simulatore da browser di un sintetizzatore percussivo semi-modulare con schema i
 - **SEQ PITCH MOD** su OSC 1 e 2, nessuno, o solo OSC 2.
 - **Clock** interno, esterno (ADV/CLOCK) o MIDI con divisioni da 1/4 a 1/32T (SCALE).
 - **Patch bay** completa con collegamenti interni: un cavo nel jack di ingresso sostituisce o si somma al segnale interno, come indicato nella guida.
-- **MIDI** in/out tramite Web MIDI (canale, THRU, note e clock).
+- **MIDI** in/out tramite Web MIDI (canale, THRU, note; riceve e invia il clock MIDI con start/stop).
 - **Tastiera a schermo** e tastiera del computer (A W S E D F …, Z/X per l'ottava, spazio = PLAY).
 - **16 preset** di fabbrica (cassa, rullante, hi-hat, tom, cowbell FM, basso acid, drone e patch d'esempio) e **preset personali**, con esportazione e importazione della **sessione completa**.
 
@@ -48,6 +48,16 @@ Il simulatore è una PWA: dopo la prima apertura funziona anche senza connession
 - **Android (Chrome)**: menu ⋮ → **Installa app**.
 
 Dopo un aggiornamento dei file su GitHub, apri l'app una volta con la connessione attiva per scaricare la nuova versione.
+
+## File
+
+| File | Contenuto |
+|---|---|
+| `index.html` | Il simulatore completo (interfaccia, motore audio, font incorporati) |
+| `sw.js` | Service worker per l'uso offline |
+| `manifest.webmanifest` | Dati dell'app installabile |
+| `icon-*.png` | Icone dell'app |
+| `OFL-*.txt` | Licenze dei font Barlow e JetBrains Mono (SIL Open Font License) |
 
 ## Compatibilità
 

@@ -149,6 +149,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:2px 0 
   <p class="mrow"><label>Porta di uscita (OUT/THRU, USB)</label><select class="btn" id="mOut"><option value="">nessuna</option></select></p>
   <p class="mrow"><label><input type="checkbox" id="mThru"> MIDI OUT/THRU in modo THRU: ripete ciò che arriva su MIDI IN</label></p>
   <p class="mrow"><label><input type="checkbox" id="mNotes"> Invia le note del sequencer (pitch e velocity) sul canale scelto</label></p>
+  <p class="mrow"><label><input type="checkbox" id="mClock"> Invia il clock MIDI (start, stop e 24 impulsi per quarto) quando CLOCK è su INT</label></p>
   <p class="mrow" style="color:var(--dim);font-size:13px">Web MIDI funziona in Chrome/Edge su computer e Android; non su iPhone.</p>
   <p><button class="btn on" id="midiClose">Chiudi</button></p>
 </div></div>
@@ -196,7 +197,7 @@ function makeEngine(){
         color:1,noise:0,vcaMode:0,vcaDecay:.4,vol:.7,vcfMode:1,cutoff:.5,res:.2,vcfDecay:.3,vcfEnv:.5,noiseMod:0,tempo:.36,clock:2,scale:2};
       for(let i=0;i<8;i++){p['p'+i]=.5;p['v'+i]=.8;}
       this.p=p;this.ps={};for(const k of ['f1','f2','lvl1','lvl2','fm','noise','vol','cutoff','res','env1','env2','vcfEnv','noiseMod'])this.ps[k]=p[k];
-      this.o=new Float32Array(OUT.length);this.inMap=new Int16Array(IN.length).fill(-1);this.nCab=0;
+      this.o=new Float32Array(OUT.length+4);this.inMap=new Int16Array(IN.length).fill(-1);this.nCab=0;
       this.ph1=Math.random();this.ph2=Math.random();this.rnd=2463534242;
       this.b0=this.b1=this.b2=this.b3=this.b4=this.b5=this.b6=0;
       this.z0=this.z1=this.z2=this.z3=0;
@@ -205,28 +206,39 @@ function makeEngine(){
       this.lAdv=false;this.lTrg=false;this.lPS=false;
       this.midiV=0;this.lastMclk=-1e9;this.now=0;
       this.dx=0;this.dy=0;this.lc=0;this.post=function(){};
-      this.cO=1;this.cF=1;this.cA=1;this.cAtk=1;
+      this.cO=1;this.cF=1;this.cA=1;this.cAtk=1;this.xv=new Float32Array(4);this.xc=[];this.cab=[];this.tp=[];this.tacc=new Float32Array(0);this.tw=0;this.ckLeft=0;this.ckGap=0;this.ckCnt=0;this.extCmd=false;this.curBpm=120;this.xo=[this.o];
     }
     handle(m){
       switch(m.t){
         case 'p':this.p[m.k]=m.v;break;
-        case 'cables':this.inMap.fill(-1);for(const c of m.list){const oi=O[c[0]],ii=I[c[1]];if(oi!=null&&ii!=null)this.inMap[ii]=oi;}this.nCab=m.list.length;break;
+        case 'cables':this.cab=m.list;this.remap();break;
+        case 'xc':this.xc=m.list||[];this.remap();break;
+        case 'xv':for(let j=0;j<4;j++)this.xv[j]=+m.v[j]||0;break;
+        case 'taps':this.tp=(m.list||[]).map(k=>O[k]).filter(i=>i!=null);this.tacc=new Float32Array(this.tp.length*2);for(let j=0;j<this.tp.length;j++){this.tacc[j*2]=-1e9;this.tacc[j*2+1]=1e9;}this.tw=0;break;
         case 'play':{const on=m.v==null?!this.playing:!!m.v;if(on&&!this.playing)this.start(true);else if(!on&&this.playing)this.stop();break;}
         case 'trig':this.fire(this.velAt(this.step),true);break;
         case 'adv':this.step=(this.step+1)%8;this.post({t:'st',i:this.step});break;
         case 'on':this.midiV=(m.n-60)/12;if(!this.playing)this.fire(m.vel==null?.8:m.vel,false,true);break;
         case 'off':break;
         case 'mclk':this.lastMclk=this.now;if(this.playing&&this.p.clock!==2){if(++this.pc>=PPS[this.p.scale|0]){this.pc=0;this.advance();}}break;
-        case 'mstart':if(this.p.clock!==2){this.step=7;this.pc=PPS[this.p.scale|0]-1;this.start(false);}break;
-        case 'mstop':if(this.p.clock!==2&&this.playing)this.stop();break;
+        case 'mstart':this.extCmd=true;if(this.p.clock!==2){this.step=7;this.pc=PPS[this.p.scale|0]-1;this.start(false);}this.extCmd=false;break;
+        case 'mstop':this.extCmd=true;if(this.p.clock!==2&&this.playing)this.stop();this.extCmd=false;break;
         case 'panic':if(this.playing)this.stop();this.egO=this.egF=this.egA=0;this.aStage=0;this.z0=this.z1=this.z2=this.z3=0;break;
       }
     }
+    remap(){this.inMap.fill(-1);for(const c of this.cab){const oi=O[c[0]],ii=I[c[1]];if(oi!=null&&ii!=null)this.inMap[ii]=oi;}for(const x of this.xc){const ii=I[x[1]];if(ii!=null&&x[0]>=0&&x[0]<4)this.inMap[ii]=OUT.length+x[0];}this.nCab=this.cab.length+this.xc.length;}
+    xtick(OS){
+      if(this.xc.length){const xv=this.xv,N=OUT.length;for(const o of OS){o[N]=xv[0];o[N+1]=xv[1];o[N+2]=xv[2];o[N+3]=xv[3];}}
+      if(this.ckLeft>0){if(--this.ckCnt<=0){this.ckLeft--;this.ckCnt+=this.ckGap;if(this.ckGap>this.sr*.0008)this.post({t:'mclk'});}}
+      if(this.tp.length){const o=OS[0],a=this.tacc;for(let j=0;j<this.tp.length;j++){const x=o[this.tp[j]];if(x>a[j*2])a[j*2]=x;if(x<a[j*2+1])a[j*2+1]=x;}
+        if(++this.tw>=128){const v=[];for(let j=0;j<this.tp.length;j++){v.push([o[this.tp[j]],a[j*2],a[j*2+1]]);a[j*2]=-1e9;a[j*2+1]=1e9;}this.tw=0;this.post({t:'tapv',v});}}
+    }
     velAt(i){const im=this.inMap;return im[I.velIn]>=0?cl(this.o[im[I.velIn]]*.2,0,1.2):this.p['v'+i];}
-    start(fromButton){this.playing=true;this.clkPh=0;this.pc=0;this.post({t:'pl',v:true});if(fromButton&&this.inMap[I.trigIn]<0)this.fire(this.velAt(this.step),true);}
-    stop(){this.playing=false;this.post({t:'pl',v:false});}
+    start(fromButton){if(!this.extCmd)this.post({t:'mout',s:'start'});this.playing=true;this.clkPh=0;this.pc=0;if(this.p.clock===2&&this.inMap[I.advClk]<0){this.ckLeft=6;this.ckGap=this.sr*15/this.curBpm/6;this.ckCnt=0;}this.post({t:'pl',v:true});if(fromButton&&this.inMap[I.trigIn]<0)this.fire(this.velAt(this.step),true);}
+    stop(){if(!this.extCmd)this.post({t:'mout',s:'stop'});this.playing=false;this.post({t:'pl',v:false});}
     advance(){
       this.step=(this.step+1)%8;this.post({t:'st',i:this.step});
+      if(this.p.clock===2&&this.inMap[I.advClk]<0){this.ckLeft=6;this.ckGap=this.sr*15/this.curBpm/6;this.ckCnt=0;}else this.ckLeft=0;
       this.trigT=Math.max(1,Math.round(this.sr*.001));
       if(this.inMap[I.trigIn]<0)this.fire(this.velAt(this.step),true);
       const pv=(this.p['p'+this.step]-.5)*10,v=this.velAt(this.step);
@@ -250,7 +262,7 @@ function makeEngine(){
     process(L,R,n){let i=0;while(i<n){const end=Math.min(n,i+32);this.block();for(;i<end;i++){const y=this.tick();L[i]=y;if(R&&R!==L)R[i]=y;}}}
     tick(){
       const p=this.p,ps=this.ps,sr=this.sr,im=this.inMap,o=this.o;
-      this.now++;
+      this.now++;this.xtick(this.xo);
       const inp=k=>im[I[k]]>=0?o[im[I[k]]]:null;
       /* ---- transport & clock ---- */
       if(this.nCab){
@@ -260,7 +272,7 @@ function makeEngine(){
       if(this.playing&&p.clock===2){
         const av=inp('advClk');
         if(av!==null){const g=av>1.5;if(g&&!this.lAdv)this.advance();this.lAdv=g;}
-        else{const tc=inp('tempoCV');const bpm=10*Math.pow(1000,p.tempo)*(tc!==null?Math.pow(2,cl(tc,-6,6)):1);
+        else{const tc=inp('tempoCV');const bpm=10*Math.pow(1000,p.tempo)*(tc!==null?Math.pow(2,cl(tc,-6,6)):1);this.curBpm=bpm;
           this.clkPh+=bpm/15/sr;if(this.clkPh>=1){this.clkPh-=Math.floor(this.clkPh);this.advance();}}
       }
       if(this.trigT>0)this.trigT--;
@@ -391,7 +403,7 @@ const PRESETS={
 };
 
 /* ---------- state ---------- */
-const state={p:{},cables:[],zoom:1,kb:window.innerHeight>600,midi:{ch:1,out:'',thru:false,notes:false},pats:{}};
+const state={p:{},cables:[],zoom:1,kb:window.innerHeight>600,midi:{ch:1,out:'',thru:false,notes:false,clock:false},pats:{}};
 for(const k in PARAMS)state.p[k]=PARAMS[k].d;
 for(const k in TOGGLES)state.p[k]=TOGGLES[k].d;
 state.p.scale=2;
@@ -419,7 +431,7 @@ async function startAudio(){
   if(!ok){const Engine=makeEngine();const eng=new Engine(ctx.sampleRate);eng.post=onEngine;const sp=ctx.createScriptProcessor(1024,1,2);
     sp.onaudioprocess=ev=>{const b=ev.outputBuffer;eng.process(b.getChannelData(0),b.getChannelData(1),b.length);};send=m=>eng.handle(m);sp.connect(ctx.destination);engineMode='ScriptProcessor';}
   try{await ctx.resume();}catch(e){}
-  pushAll();updPwr();initMidi();lcd('Audio attivo · '+engineMode+' · '+ctx.sampleRate+' Hz');
+  pushAll();updPwr();initMidi();bridgeReady();lcd('Audio attivo · '+engineMode+' · '+ctx.sampleRate+' Hz');
 }
 function pushAll(){for(const k in state.p)send({t:'p',k,v:state.p[k]});sendCables();}
 function updPwr(){const on=!!ctx&&ctx.state==='running';$('pwrBtn').classList.toggle('on2',on);const l=$('powerLed');if(l)l.className='pled c'+(on?' on':'');}
@@ -428,8 +440,10 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ctx&&ctx.
 function onEngine(m){
   if(m.t==='st'){ui.step=m.i;renderSeq();}
   else if(m.t==='pl'){ui.playing=m.v;renderSeq();}
-  else if(m.t==='nout'){if(state.midi.notes&&midiOut){const ch=(state.midi.ch-1)&15;midiSend([0x90|ch,m.n,m.v]);setTimeout(()=>midiSend([0x80|ch,m.n,0]),60);}}
+  else if(m.t==='nout'){const ch=(state.midi.ch-1)&15,on=[0x90|ch,m.n,m.v],off=[0x80|ch,m.n,0];if(state.midi.notes&&midiOut){midiSend(on);setTimeout(()=>midiSend(off),60);}if(bridge.notes){bridgeOut(on,false);setTimeout(()=>bridgeOut(off,false),60);}}
+  else if(m.t==='mclk')clkOut([0xF8]);else if(m.t==='mout')clkOut([m.s==='start'?0xFA:0xFC]);else if(m.t==='tapv')toTable({kind:'synth-tapv',v:m.v});
 }
+function followClock(){if(state.p.clock===2){state.p.clock=0;drawToggle('clock');send({t:'p',k:'clock',v:0});saveSoon();}}
 function lcd(t){$('lcd').textContent=t;}
 
 /* ---------- panel building (coordinates = photo pixels) ---------- */
@@ -621,6 +635,22 @@ function initMidi(){if(midiAcc!==null)return;midiAcc=false;const st=$('midiSt');
   navigator.requestMIDIAccess().then(acc=>{midiAcc=acc;const hook=()=>{let c=0;acc.inputs.forEach(i=>{i.onmidimessage=onMidi;c++;});st.textContent='MIDI '+c+' IN';st.classList.toggle('on2',c>0);fillOuts();};hook();acc.onstatechange=hook;}).catch(()=>{st.textContent='MIDI n/d';});}
 function fillOuts(){const sel=$('mOut');const cur=state.midi.out;sel.innerHTML='<option value="">nessuna</option>';if(midiAcc)midiAcc.outputs.forEach(o=>{const op=document.createElement('option');op.value=o.id;op.textContent=o.name;sel.appendChild(op);});sel.value=cur;midiOut=midiAcc&&cur?midiAcc.outputs.get(cur)||null:null;}
 function midiSend(b){if(midiOut){try{midiOut.send(b);}catch(e){}}}
+/* ---------- ponte col tavolo (cavo MIDI virtuale e cavi tra strumenti) ---------- */
+const inTable=(()=>{try{return window.parent!==window;}catch(e){return true;}})();
+const bridge={notes:false,clock:false};
+function toTable(m){if(inTable){try{window.parent.postMessage(Object.assign({from:'p8'},m),'*');}catch(e){}}}
+function bridgeOut(b,isClock){if(isClock?bridge.clock:bridge.notes)toTable({kind:'synth-midi',data:Array.from(b)});}
+function clkOut(b){if(state.midi.clock&&midiOut)midiSend(b);bridgeOut(b,true);}
+let xcLast=null;
+window.addEventListener('message',e=>{if(!inTable||e.source!==window.parent)return;const d=e.data||{};
+  if(d.kind==='synth-midi'){try{onMidi({data:Uint8Array.from(d.data)});}catch(err){}}
+  else if(d.kind==='synth-bridge'){bridge.notes=!!d.notes;bridge.clock=!!d.clock;if(d.follow)followClock();}
+  else if(d.kind==='synth-xc'){xcLast=d;send({t:'xc',list:d.list});send({t:'taps',list:d.taps});}
+  else if(d.kind==='synth-xv'){send({t:'xv',v:d.v});}
+});
+function bridgeReady(){if(xcLast){send({t:'xc',list:xcLast.list});send({t:'taps',list:xcLast.taps});}toTable({kind:'synth-ready'});}
+if(inTable)setTimeout(()=>toTable({kind:'synth-hello'}),0);
+
 function onMidi(e){const d=e.data,s=d[0],d1=d[1],d2=d[2],c=s&0xf0,ch=(s&15)+1;
   if(state.midi.thru)midiSend(d);
   if(s===0xF8){send({t:'mclk'});return;}if(s===0xFA){send({t:'mstart'});return;}if(s===0xFC){send({t:'mstop'});return;}if(s===0xFB){send({t:'mstart'});return;}
@@ -631,6 +661,7 @@ function setupMidiDlg(){const ch=$('mCh');for(let i=1;i<=16;i++){const o=documen
   ch.value=state.midi.ch;ch.onchange=()=>{state.midi.ch=+ch.value;saveSoon();};$('mOut').onchange=()=>{state.midi.out=$('mOut').value;fillOuts();saveSoon();};
   $('mThru').checked=state.midi.thru;$('mThru').onchange=()=>{state.midi.thru=$('mThru').checked;saveSoon();};
   $('mNotes').checked=state.midi.notes;$('mNotes').onchange=()=>{state.midi.notes=$('mNotes').checked;saveSoon();};
+  $('mClock').checked=!!state.midi.clock;$('mClock').onchange=()=>{state.midi.clock=$('mClock').checked;saveSoon();};
   $('midiSt').onclick=()=>{startAudio();initMidi();fillOuts();$('midiDlg').classList.add('show');};$('midiClose').onclick=()=>$('midiDlg').classList.remove('show');
   $('midiDlg').addEventListener('click',e=>{if(e.target.id==='midiDlg')$('midiDlg').classList.remove('show');});}
 

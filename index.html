@@ -221,6 +221,7 @@ function makeEngine(){
         case 'adv':this.step=(this.step+1)%8;this.post({t:'st',i:this.step});break;
         case 'on':this.midiV=(m.n-60)/12;if(!this.playing)this.fire(m.vel==null?.8:m.vel,false,true);break;
         case 'off':break;
+        case 'oct':this.midiV=cl(this.midiV+(+m.d||0),-5,5);break;
         case 'mclk':this.lastMclk=this.now;if(this.playing&&this.p.clock!==2){if(++this.pc>=PPS[this.p.scale|0]){this.pc=0;this.advance();}}break;
         case 'mstart':this.extCmd=true;if(this.p.clock!==2){this.step=7;this.pc=PPS[this.p.scale|0]-1;this.start(false);}this.extCmd=false;break;
         case 'mstop':this.extCmd=true;if(this.p.clock!==2&&this.playing)this.stop();this.extCmd=false;break;
@@ -615,17 +616,18 @@ function buildKb(){const kb=$('kb');kb.innerHTML='';for(const k in keyEls)delete
 function keyOn(n,vel,fromMidi){down[n]=(down[n]||0)+1;if(down[n]>1)return;if(keyEls[n])keyEls[n].classList.add('down');send({t:'on',n,vel:vel||.8});
   lcd('Nota '+noteName(n)+(ui.playing?' (traspone il sequencer)':''));}
 function keyOff(n){if(!down[n])return;down[n]--;if(down[n]>0)return;delete down[n];if(keyEls[n])keyEls[n].classList.remove('down');send({t:'off',n});}
+function octShift(d){const ob=ui.kbBase;ui.kbBase=Math.max(12,Math.min(96,ui.kbBase+12*d));buildKb();if(ui.kbBase!==ob&&ui.playing){send({t:'oct',d:d});lcd('Ottava: '+noteName(ui.kbBase)+' · sequencer trasposto');}}
 function setupKb(){const kb=$('kb'),ptr=new Map();const noteAt=e=>{const t=document.elementFromPoint(e.clientX,e.clientY);return t&&t.dataset&&t.dataset.n!=null&&kb.contains(t)?+t.dataset.n:null;};
   kb.addEventListener('pointerdown',e=>{e.preventDefault();startAudio();kb.setPointerCapture(e.pointerId);const n=noteAt(e);ptr.set(e.pointerId,n);if(n!=null)keyOn(n);});
   kb.addEventListener('pointermove',e=>{if(!ptr.has(e.pointerId))return;const o=ptr.get(e.pointerId),n=noteAt(e);if(n!==o){if(o!=null)keyOff(o);if(n!=null)keyOn(n);ptr.set(e.pointerId,n);}});
   const up=e=>{if(!ptr.has(e.pointerId))return;const o=ptr.get(e.pointerId);if(o!=null)keyOff(o);ptr.delete(e.pointerId);};kb.addEventListener('pointerup',up);kb.addEventListener('pointercancel',up);
-  $('octDn').onclick=()=>{ui.kbBase=Math.max(12,ui.kbBase-12);buildKb();};$('octUp').onclick=()=>{ui.kbBase=Math.min(96,ui.kbBase+12);buildKb();};
+  $('octDn').onclick=()=>octShift(-1);$('octUp').onclick=()=>octShift(1);
   $('kbToggle').onclick=()=>{state.kb=!state.kb;applyKbVis();saveSoon();};
   let rw=0;new ResizeObserver(()=>{const w=kb.clientWidth;if(w&&Math.abs(w-rw)>4){rw=w;buildKb();}}).observe(kb);
   const MAP='awsedftgyhujkolp;';const ck={};
   window.addEventListener('keydown',e=>{if(e.repeat||e.metaKey||e.ctrlKey||e.target.tagName==='SELECT')return;const k=e.key.toLowerCase();
     if(k===' '){e.preventDefault();startAudio().then(()=>send({t:'play'}));return;}
-    if(k==='z'){ui.kbBase=Math.max(12,ui.kbBase-12);buildKb();return;}if(k==='x'){ui.kbBase=Math.min(96,ui.kbBase+12);buildKb();return;}
+    if(k==='z'){octShift(-1);return;}if(k==='x'){octShift(1);return;}
     const i=MAP.indexOf(k);if(i<0||ck[k]!=null)return;startAudio();const n=ui.kbBase+i;ck[k]=n;keyOn(n);});
   window.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(ck[k]!=null){keyOff(ck[k]);delete ck[k];}});}
 function applyKbVis(){$('kbdock').classList.toggle('hide',!state.kb);$('kbToggle').classList.toggle('on2',state.kb);if(state.kb)buildKb();}
@@ -852,7 +854,7 @@ const I18N=[
 ['MIDI OUT/THRU: non disponibile nel browser','MIDI OUT/THRU: not available in the browser'],
 ['Modifiche annullate: richiamato il pattern salvato (PATTERN+RESET)','Changes undone: saved pattern recalled (PATTERN+RESET)'],
 ['Modo KEYBOARD: i pad suonano le note','KEYBOARD mode: the pads play notes'],['Modo STEP: SHIFT+pad per modificare uno step','STEP mode: SHIFT+pad to edit a step'],
-['Mute disattivato','Mute off'],['Nome vuoto: preset non salvato','Empty name: preset not saved'],['Nota ','Note '],['Ottava: ','Octave: '],
+['Mute disattivato','Mute off'],['Nome vuoto: preset non salvato','Empty name: preset not saved'],['Nota ','Note '],['Ottava: ','Octave: '],[' · sequencer trasposto',' · sequencer transposed'],
 ['PHONES: uscita audio verso cuffie/altoparlanti del dispositivo','PHONES: audio output to the device headphones/speakers'],
 ['PHONES: uscita audio verso gli altoparlanti / cuffie del dispositivo','PHONES: audio output to the device speakers / headphones'],
 ['Pagina automatica','Automatic page'],['Pagina ','Page '],['Panic: tutte le note spente','Panic: all notes off'],

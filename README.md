@@ -20,6 +20,7 @@ A browser simulator of a semi-modular percussion synthesizer laid out like the B
 - **Full patch bay** with internal connections: a cable in an input jack replaces or adds to the internal signal, as described in the in-app guide.
 - **MIDI** in/out via Web MIDI (channel, THRU, notes; receives and sends MIDI clock with start/stop).
 - **On-screen keyboard** and computer keyboard (A W S E D F …, Z/X for octave, space = PLAY).
+- **Effects pedalboard** (FX button, below the keyboard): the nine effect types found in Vital — overdrive, compressor, filter (LP/BP/HP with LFO, free or synced), EQ, chorus, flanger, phaser, delay (free or synced to the sequencer tempo) and reverb. Add the ones you want from the «＋ Add effect» menu, remove them with ×, reorder by dragging the name or with ◀ ▶; each pedal has its own footswitch and LED; settings and order are remembered.
 - **16 factory presets** (kick, snare, hi-hats, toms, FM cowbell, acid bass, drone and example patches) and **user presets**, with export and import of the **whole session**.
 
 ## Quick start

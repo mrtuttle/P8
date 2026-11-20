@@ -20,6 +20,7 @@ Simulatore da browser di un sintetizzatore percussivo semi-modulare con schema i
 - **Patch bay** completa con collegamenti interni: un cavo nel jack di ingresso sostituisce o si somma al segnale interno, come indicato nella guida.
 - **MIDI** in/out tramite Web MIDI (canale, THRU, note; riceve e invia il clock MIDI con start/stop).
 - **Tastiera a schermo** e tastiera del computer (A W S E D F …, Z/X per l'ottava, spazio = PLAY).
+- **Pedaliera effetti** (pulsante FX, sotto la tastiera): i nove tipi di effetto presenti in Vital — overdrive, compressore, filtro (LP/BP/HP con LFO libero o sincronizzato), EQ, chorus, flanger, phaser, delay (libero o sincronizzato al tempo del sequencer) e riverbero. Si aggiungono dal menu «＋ Aggiungi effetto», si tolgono con ×, si riordinano trascinando il nome o con ◀ ▶; ogni pedale ha interruttore e LED; impostazioni e ordine vengono ricordati.
 - **16 preset** di fabbrica (cassa, rullante, hi-hat, tom, cowbell FM, basso acid, drone e patch d'esempio) e **preset personali**, con esportazione e importazione della **sessione completa**.
 
 ## Avvio rapido
@@ -50,16 +51,6 @@ Il simulatore è una PWA: dopo la prima apertura funziona anche senza connession
 
 - **iPhone / iPad (Safari)**: apri la pagina, tocca Condividi → **Aggiungi alla schermata Home**.
 - **Android (Chrome)**: menu ⋮ → **Installa app**.
-
-## File
-
-| File | Contenuto |
-|---|---|
-| `index.html` | Il simulatore completo (interfaccia, motore audio, font incorporati) |
-| `sw.js` | Service worker per l'uso offline |
-| `manifest.webmanifest` | Dati dell'app installabile |
-| `icon-*.png` | Icone dell'app |
-| `OFL-*.txt` | Licenze dei font Barlow e JetBrains Mono (SIL Open Font License) |
 
 ## Compatibilità
 

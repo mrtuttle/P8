@@ -31,6 +31,13 @@ Simulatore da browser di un sintetizzatore percussivo semi-modulare con schema i
 4. Per collegare un cavo tocca un'**uscita** e poi un **ingresso**. Toccando un ingresso già collegato il cavo si stacca.
 5. Il pulsante **?** apre la guida completa.
 
+## Controller MIDI e registrazione
+
+- **MIDI LEARN** (computer, Chrome o Edge): apri **MIDI**, premi *Assegna manopole e switch (MIDI LEARN)*, clicca una manopola, uno switch, una manopola di un pedale, un interruttore a pedale o SYNC, poi muovi una manopola/un fader o premi un pulsante del controller. I badge viola mostrano il CC o la nota assegnati. *Togli assegnazione* libera il controllo scelto, *Cancella tutte* le toglie tutte, Esc o *Fine* per uscire. Le assegnazioni restano salvate nel browser.
+- Manopole e fader impostano il valore direttamente; i pulsanti (momentanei o a levetta, CC o nota) commutano gli switch e accendono/spengono i pedali.
+- Novation Launch Control XL 3: usa un **Custom Mode** (lì gli encoder inviano CC assoluti); le modalità DAW servono ai programmi DAW.
+- **● REC** (o il tasto **R**) registra l'uscita finale, effetti compresi: WAV in questa versione offline, WebM/MP4 dentro claude.ai.
+
 ## Preset e sessioni
 
 Dal menu **PRESET**:

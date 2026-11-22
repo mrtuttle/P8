@@ -1,4 +1,4 @@
-# P-8 · Semi-modular percussion synthesizer simulator
+# P-8 · Semi-modular Percussion Synth Simulator
 
 *English · [Italiano](README.it.md)*
 
@@ -33,10 +33,11 @@ A browser simulator of a semi-modular percussion synthesizer laid out like the B
 
 ## MIDI controller and recording
 
-- **MIDI LEARN** (computer, Chrome or Edge): open **MIDI**, press *Assign knobs and switches (MIDI LEARN)*, click a knob, switch, pedal knob, footswitch or SYNC, then move a knob/fader or press a button on your controller. Purple badges show the assigned CC or note. *Remove assignment* frees the selected control, *Clear all* removes every assignment, Esc or *Done* exits. Assignments are saved in the browser.
+- **MIDI LEARN** (computer, Chrome or Edge): open **MIDI**, press *Assign knobs and switches (MIDI LEARN)*, click a knob, switch, pedal knob, footswitch or SYNC, then move a knob/fader or press a button on your controller. Purple badges show the assigned CC or note. *Remove assignment* frees the selected control, *Clear all* removes every assignment, Esc or *Done* exits. Assignments are saved in the browser automatically; *Export/Import assignments* in the MIDI window saves them to a .json file, and *Export session* includes them together with the effects.
 - Knobs and faders set the value directly; buttons (momentary or toggle, CC or note) flip switches and pedals on/off.
-- Novation Launch Control XL 3: use a **Custom Mode** (encoders send absolute CCs there); the DAW modes are reserved for DAW software.
-- **● REC** (or the **R** key) records the final output, effects included: WAV in this offline version, WebM/MP4 inside claude.ai.
+- If your controller has several modes, choose its user/custom mode, where knobs send standard CC messages; modes made for a specific DAW may send nothing usable.
+- The **MIDI MONITOR** in the MIDI window shows the connected ports and the last messages received: use it to check that your controller is sending.
+- **● REC** (or the **R** key) records the final output, effects included, and saves it as a WAV file. Files go to the Downloads folder; in Chrome and Edge on a computer the **📁** button next to REC lets you choose another folder, where recordings are then saved automatically (click 📁 again to change it or go back to Downloads).
 
 ## Presets and sessions
 
@@ -47,26 +48,25 @@ From the **PRESET** menu:
 | ＋ Save current sound… | Saves knobs, switches, cables and the 8-step sequence under a name (also with the SAVE button) |
 | ★ name | Recalls one of your presets |
 | ✕ Delete «name» | Deletes the loaded preset |
-| ⇩ Export session | Creates `P8-sessione.json` with your presets and the current sound, including sequence, tempo and scale |
+| ⇩ Export session… | Saves a session file named with date and time (e.g. `P8-session-2026-11-22-2135.json`). In Chrome and Edge on a computer the system *Save as* window lets you choose folder and name; elsewhere you can edit the name and the file goes to Downloads. A window lets you choose what to include (everything by default): user presets, current sound with sequence, tempo and scale, effects, MIDI assignments. Importing restores only the parts contained in the file |
 | ⇧ Import session or presets | Adds the presets in the file and, if you confirm, restores the session |
 
-Everything is stored in the browser. The online version and the installed offline version have separate memories: use Export and Import to move between them.
+Everything is stored in the browser. On iPhone and iPad the installed app has its own memory, separate from Safari: use Export and Import to move between them.
 
-## Offline use (iPhone, iPad, Android)
+## Installing the app and offline use
 
 The simulator is a PWA: after the first visit it also works without a connection.
 
 - **iPhone / iPad (Safari)**: open the page, tap Share → **Add to Home Screen**.
 - **Android (Chrome)**: menu ⋮ → **Install app**.
+- **Computer (Chrome or Edge)**: click the install icon at the right of the address bar, or menu ⋮ → **Install**. The app opens in its own window.
+
+When a new version is available, it is downloaded automatically the next time you open the app while online.
 
 ## Compatibility
 
 - Audio: recent Chrome, Edge, Firefox and Safari (AudioWorklet, with an automatic fallback when unavailable).
 - MIDI: Chrome and Edge on computers and Android. Safari and every browser on iPhone/iPad do not support Web MIDI.
-
-## Technical notes
-
-The audio engine runs in an AudioWorklet at the full sample rate: polyBLEP anti-aliased oscillators, zero-delay-feedback (ZDF) ladder filter with saturation, exponential decay envelopes, patch bay processed sample by sample.
 
 ## Credits
 
